@@ -1,0 +1,56 @@
+name: NodeSeek Signin
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 16 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  run-signin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run sign script
+        env:
+          USER: ${{ secrets.USER }}
+          PASS: ${{ secrets.PASS }}
+          USER1: ${{ secrets.USER1 }}
+          PASS1: ${{ secrets.PASS1 }}
+          USER2: ${{ secrets.USER2 }}
+          PASS2: ${{ secrets.PASS2 }}
+          USER3: ${{ secrets.USER3 }}
+          PASS3: ${{ secrets.PASS3 }}
+          USER4: ${{ secrets.USER4 }}
+          PASS4: ${{ secrets.PASS4 }}
+          USER5: ${{ secrets.USER5 }}
+          PASS5: ${{ secrets.PASS5 }}
+          NS_COOKIE: ${{ vars.NS_COOKIE }}
+          NS_RANDOM: ${{ secrets.NS_RANDOM }}
+          SOLVER_TYPE: ${{ secrets.SOLVER_TYPE }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          CLIENTT_KEY: ${{ secrets.CLIENTT_KEY }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          NS_IMPERSONATE: ${{ secrets.NS_IMPERSONATE }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_USER_ID: ${{ secrets.TG_USER_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
+        run: python nodeseek_sign.py
