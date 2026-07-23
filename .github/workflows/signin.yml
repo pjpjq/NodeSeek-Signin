@@ -3,7 +3,7 @@ name: NodeSeek Signin
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 16 * * *"
+    - cron: "17 16 * * *"
 
 permissions:
   contents: read
@@ -42,7 +42,7 @@ jobs:
           PASS4: ${{ secrets.PASS4 }}
           USER5: ${{ secrets.USER5 }}
           PASS5: ${{ secrets.PASS5 }}
-          NS_COOKIE: ${{ vars.NS_COOKIE }}
+          NS_COOKIE: ${{ secrets.NS_COOKIE }}
           NS_RANDOM: ${{ secrets.NS_RANDOM }}
           SOLVER_TYPE: ${{ secrets.SOLVER_TYPE }}
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
