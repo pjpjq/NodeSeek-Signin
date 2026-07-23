@@ -1,0 +1,44 @@
+name: Keep Scheduled Workflows Alive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 16 1,15 * *"
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Refresh repository activity when needed
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          last_commit_epoch="$(git log -1 --format=%ct)"
+          now_epoch="$(date -u +%s)"
+          thirty_days_seconds=$((30 * 24 * 60 * 60))
+
+          if (( now_epoch - last_commit_epoch < thirty_days_seconds )); then
+            echo "Latest commit is less than 30 days old; skipping keepalive commit."
+            exit 0
+          fi
+
+          date -u '+%Y-%m-%dT%H:%M:%SZ' > .github/keepalive
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/keepalive
+          git commit -m "chore(action): 更新定时任务保活时间"
+          git push origin "HEAD:${DEFAULT_BRANCH}"
