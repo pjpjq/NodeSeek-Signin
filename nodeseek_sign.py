@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import time
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -566,6 +567,9 @@ if __name__ == "__main__":
         cookie_list.append("")
     
     cookies_updated = False
+    failed_accounts = []
+    if max_count == 0:
+        failed_accounts.append(("未配置账号", "invalid", "未配置账号或Cookie"))
     
     for i in range(max_count):
         account_index = i + 1
@@ -633,8 +637,10 @@ if __name__ == "__main__":
                                 print(f"发送通知失败: {e}")
                     else:
                         print(f"账号 {display_user} 重新签到仍然失败: {msg}")
+                        failed_accounts.append((display_user, result, f"重新签到失败: {msg}"))
                 else:
                     print(f"账号 {display_user} 登录失败，无法获取新Cookie")
+                    failed_accounts.append((display_user, result, f"登录失败，无法获取新Cookie (原签到: {msg})"))
                     if hadsend:
                         try:
                             send("NodeSeek 登录失败", f"账号 {display_user} 登录失败")
@@ -642,6 +648,7 @@ if __name__ == "__main__":
                             print(f"发送通知失败: {e}")
             else:
                 print(f"账号 {display_user} 无法重新登录: 未配置用户名或密码")
+                failed_accounts.append((display_user, result, msg))
     
     if cookies_updated and cookie_list:
         print("\n==== 处理完毕，保存更新后的Cookie ====")
@@ -651,3 +658,21 @@ if __name__ == "__main__":
             print("所有Cookie已成功保存")
         except Exception as e:
             print(f"保存Cookie变量异常: {e}")
+            failed_accounts.append(("Cookie保存", "error", str(e)))
+
+    if failed_accounts:
+        print(f"\n==== 签到结果汇总: 共 {len(failed_accounts)} 个账号失败 ====")
+        for acc_user, res_type, res_msg in failed_accounts:
+            print(f"[ERROR] 账号: {acc_user} | 状态: {res_type} | 诊断信息: {res_msg}")
+        if hadsend:
+            try:
+                send("NodeSeek 签到失败", "\n".join(
+                    f"账号: {acc_user} | 状态: {res_type} | 诊断信息: {res_msg}"
+                    for acc_user, res_type, res_msg in failed_accounts
+                ))
+            except Exception as e:
+                print(f"发送失败通知异常: {e}")
+        sys.exit(1)
+
+    print("\n==== 签到结果汇总: 所有账号均签到成功或已签到 ====")
+    sys.exit(0)
